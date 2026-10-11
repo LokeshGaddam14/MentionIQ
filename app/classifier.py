@@ -74,6 +74,9 @@ def call_groq(system: str, user: str) -> str:
         raise LLMTransient(str(e)) from e
     if resp.status_code == 429 or resp.status_code >= 500:
         raise LLMTransient(f"Groq returned {resp.status_code}")
+    # json_validate_failed means the model garbled output — safe to retry
+    if resp.status_code == 400 and "json_validate_failed" in resp.text:
+        raise LLMTransient(f"Groq json_validate_failed, will retry")
     if resp.status_code >= 400:
         raise LLMError(f"Groq returned {resp.status_code}: {resp.text[:200]}")
     return resp.json()["choices"][0]["message"]["content"]
