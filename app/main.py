@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app import models  # noqa: F401  (registers tables)
+from app.classifier import LLMError, classify_pending
 from app.db import Base, engine, get_db
 from app.ingest import ingest_all, ingest_brand
 from app.models import Brand, Mention
@@ -19,7 +20,7 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(title="MentionIQ", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="MentionIQ", version="0.2.0", lifespan=lifespan)
 
 
 class BrandIn(BaseModel):
@@ -82,13 +83,24 @@ def ingest_everything(db: Session = Depends(get_db)) -> dict[str, int]:
     return ingest_all(db)
 
 
+@app.post("/classify")
+def classify(limit: int = 20, db: Session = Depends(get_db)) -> dict[str, int]:
+    try:
+        return classify_pending(db, limit=max(1, min(limit, 50)))
+    except LLMError as e:
+        raise HTTPException(502, f"LLM provider error: {e}")
+
+
 @app.get("/mentions", response_model=list[MentionOut])
 def list_mentions(
     brand_id: int | None = None,
+    min_urgency: int | None = None,
     limit: int = 50,
     db: Session = Depends(get_db),
 ):
     q = select(Mention).order_by(Mention.published_at.desc().nullslast()).limit(min(limit, 200))
     if brand_id:
         q = q.where(Mention.brand_id == brand_id)
+    if min_urgency:
+        q = q.where(Mention.urgency >= min_urgency)
     return db.scalars(q).all()
