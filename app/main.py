@@ -12,6 +12,7 @@ from app.classifier import LLMError, classify_pending
 from app.db import Base, engine, get_db
 from app.ingest import ingest_all, ingest_brand
 from app.models import Brand, Mention
+from app.review import router as review_router
 
 
 @asynccontextmanager
@@ -21,6 +22,7 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="MentionIQ", version="0.2.0", lifespan=lifespan)
+app.include_router(review_router)
 
 
 class BrandIn(BaseModel):

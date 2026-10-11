@@ -51,7 +51,7 @@ class ClassificationFailed(Exception):
 LLMCall = Callable[[str, str], str]
 
 
-def call_groq(system: str, user: str) -> str:
+def call_groq(system: str, user: str, max_tokens: int = 120) -> str:
     if not settings.groq_api_key:
         raise LLMError("GROQ_API_KEY is not set")
     try:
@@ -65,7 +65,7 @@ def call_groq(system: str, user: str) -> str:
                     {"role": "user", "content": user},
                 ],
                 "temperature": 0,
-                "max_tokens": 120,
+                "max_tokens": max_tokens,
                 "response_format": {"type": "json_object"},
             },
             timeout=settings.llm_timeout_seconds,

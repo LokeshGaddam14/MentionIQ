@@ -24,9 +24,9 @@ def make_client(monkeypatch):
 
     app.dependency_overrides[get_db] = override
     fake = [
-        {"source": "google_news", "url": "https://x.test/1", "title": "A", "summary": "", "published_at": None},
-        {"source": "google_news", "url": "https://x.test/1", "title": "A dup", "summary": "", "published_at": None},
-        {"source": "google_news", "url": "https://x.test/2", "title": "B", "summary": "", "published_at": None},
+        {"source": "google_news", "url": "https://x.test/1", "title": "Acme A", "summary": "", "published_at": None},
+        {"source": "google_news", "url": "https://x.test/1", "title": "Acme A dup", "summary": "", "published_at": None},
+        {"source": "google_news", "url": "https://x.test/2", "title": "Acme B", "summary": "", "published_at": None},
     ]
     monkeypatch.setattr(ingest, "fetch_google_news", lambda q: fake)
     return TestClient(app)

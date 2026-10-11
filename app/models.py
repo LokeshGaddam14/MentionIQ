@@ -41,3 +41,16 @@ class Mention(Base):
     classified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     brand: Mapped[Brand] = relationship(back_populates="mentions")
+
+
+class Draft(Base):
+    __tablename__ = "drafts"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    mention_id: Mapped[int] = mapped_column(ForeignKey("mentions.id"), unique=True, index=True)
+    reply_text: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    mention: Mapped["Mention"] = relationship()

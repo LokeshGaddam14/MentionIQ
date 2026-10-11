@@ -31,7 +31,11 @@ def fetch_google_news(query: str) -> list[dict]:
 
 
 def ingest_brand(db: Session, brand: Brand) -> int:
-    items = fetch_google_news(brand.query)
+    needle = brand.name.lower()
+    items = [
+        i for i in fetch_google_news(brand.query)
+        if needle in f"{i['title']} {i['summary']}".lower()
+    ]
     if not items:
         return 0
     existing = set(
